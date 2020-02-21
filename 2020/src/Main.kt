@@ -6,7 +6,7 @@ data class Book(val id: Int, val score: Int) {}
 
 data class Library(
     val id: Int,
-    val books: List<Book>,
+    val books: List<Book> = mutableListOf(),
     val timeToSignUp: Int,
     val numberOfBooksEachDay: Int,
     var score: Int = 0
@@ -48,7 +48,20 @@ fun solve(reader: BufferedReader, output: File) {
     }
     println("input mapped")
 
+
     // SOLUTION
+    libraries.sortByDescending { it.books.sumBy { book ->  book.score } }
+    val scannedBooks = mutableSetOf<Book>()
+
+    for (i in 0 until numberOfLibraries) {
+        val lib = libraries[i];
+
+        val validBooks = lib.books.minus(scannedBooks)
+        lib.score = (validBooks.sumBy { it.score } / (lib.timeToSignUp + (validBooks.size / lib.numberOfBooksEachDay)))
+        validBooks.forEach { scannedBooks.add(it) }
+
+    }
+
 
 
     // Output
@@ -57,15 +70,13 @@ fun solve(reader: BufferedReader, output: File) {
 
     FileOutputStream(output, true)
         .bufferedWriter()
-        .use {
-            out -> out.appendln("${libraries.size}")
+        .use { out ->
+            out.appendln("${libraries.size}")
             libraries.forEach {
                 out.appendln("${it.id} ${it.books.size}")
-                out.appendln("${it.books.joinToString { book -> book.id.toString() }}".replace(",", ""))
+                out.appendln(it.books.joinToString { book -> book.id.toString() }.replace(",", ""))
             }
         }
-
-
 
 
 }
