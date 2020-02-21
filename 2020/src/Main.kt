@@ -1,6 +1,5 @@
 import java.io.BufferedReader
 import java.io.File
-import java.lang.Integer.min
 
 data class Book(val id: Int, val score: Int) {}
 
@@ -13,7 +12,7 @@ data class Library(
 ) {}
 
 fun main() {
-    for (ex in 'A'..'F') {
+    for (ex in 'E'..'F') {
         println("${ex}: started")
         val input = File("in/${ex}.in");
         val output = File("src/${ex}.out");
@@ -32,8 +31,15 @@ fun solve(reader: BufferedReader, output: File) {
     val libraries = mutableListOf<Library>()
 
     for (i in 0 until numberOfLibraries) {
+
         // Describing library
-        val (_, timeToSignUp, booksEachDay) = reader.readLine().split(" ").map { it.toInt() };
+        val (amountOfBooks, timeToSignUp, booksEachDay) = reader.readLine().split(" ").map { it.toInt() };
+
+        if ((amountOfBooks / booksEachDay) + timeToSignUp > (numberOfDays * 0.6)) {
+            reader.readLine()
+            continue
+        };
+
         val libraryBooks = reader.readLine().split(" ").map { books.first { b -> b.id == it.toInt() } }
 
         libraries.add(
