@@ -48,7 +48,8 @@ fun solve(reader: BufferedReader, output: File) {
     }
     println("input mapped")
 
-    libraries.sortByDescending { it.score }
+    // SOLUTION
+
 
     // Output
     println("writing output")
