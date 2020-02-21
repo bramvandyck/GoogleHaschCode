@@ -41,21 +41,14 @@ fun solve(reader: BufferedReader, output: File) {
                 id = i,
                 timeToSignUp = timeToSignUp,
                 numberOfBooksEachDay = booksEachDay,
-                books = libraryBooks
+                books = libraryBooks,
+                score = (libraryBooks.sumBy { it.score }) /  ( timeToSignUp +  (libraryBooks.size / booksEachDay))
             )
         )
     }
     println("input mapped")
 
-
-    // Logic
-    println("alogrithm started")
-
-
-
-
-    println("alogrithm done")
-
+    libraries.sortByDescending { it.score }
 
     // Output
     println("writing output")
