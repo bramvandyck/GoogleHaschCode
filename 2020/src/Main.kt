@@ -1,5 +1,6 @@
 import java.io.BufferedReader
 import java.io.File
+import java.io.FileOutputStream
 
 data class Book(val id: Int, val score: Int) {}
 
@@ -12,7 +13,7 @@ data class Library(
 ) {}
 
 fun main() {
-    for (ex in 'E'..'F') {
+    for (ex in 'A'..'F') {
         println("${ex}: started")
         val input = File("in/${ex}.in");
         val output = File("src/${ex}.out");
@@ -33,22 +34,15 @@ fun solve(reader: BufferedReader, output: File) {
     for (i in 0 until numberOfLibraries) {
 
         // Describing library
-        val (amountOfBooks, timeToSignUp, booksEachDay) = reader.readLine().split(" ").map { it.toInt() };
-
-        if ((amountOfBooks / booksEachDay) + timeToSignUp > (numberOfDays * 0.6)) {
-            reader.readLine()
-            continue
-        };
-
-        val libraryBooks = reader.readLine().split(" ").map { books.first { b -> b.id == it.toInt() } }
+        val (_, timeToSignUp, booksEachDay) = reader.readLine().split(" ").map { it.toInt() };
+        val libraryBooks = reader.readLine().split(" ").map { books[it.toInt()] }
 
         libraries.add(
             Library(
                 id = i,
                 timeToSignUp = timeToSignUp,
                 numberOfBooksEachDay = booksEachDay,
-                books = libraryBooks,
-                score = (libraryBooks.sumBy { it.score }) /  ( timeToSignUp +  (libraryBooks.size / booksEachDay))
+                books = libraryBooks
             )
         )
     }
@@ -60,12 +54,17 @@ fun solve(reader: BufferedReader, output: File) {
     println("writing output")
     output.writeText("")
 
-    output.appendText("${libraries.size} \n");
+    FileOutputStream(output, true)
+        .bufferedWriter()
+        .use {
+            out -> out.appendln("${libraries.size}")
+            libraries.forEach {
+                out.appendln("${it.id} ${it.books.size}")
+                out.appendln("${it.books.joinToString { book -> book.id.toString() }}".replace(",", ""))
+            }
+        }
 
-    libraries.forEach {
-        output.appendText("${it.id} ${it.books.size} \n")
-        output.appendText("${it.books.joinToString { book -> book.id.toString() }} \n".replace(",", ""))
-    }
+
 
 
 }
