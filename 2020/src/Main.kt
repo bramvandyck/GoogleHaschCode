@@ -1,20 +1,27 @@
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileOutputStream
-import kotlin.math.min
+import kotlin.math.pow
 
 data class Book(val id: Int, val score: Int) {}
 
 data class Library(
     val id: Int,
-    val books: List<Book> = mutableListOf(),
+    var books: List<Book> = listOf<Book>(),
     val timeToSignUp: Int,
     val numberOfBooksEachDay: Int,
-    var score: Int = 0
-) {}
+    var score: Double = 0.0
+) {
+    fun calculateScore(alreadyScanned: Set<Book> = setOf()) {
+        this.books = this.books.minus(alreadyScanned);
+        val workload = (this.books.size / this.numberOfBooksEachDay);
+        val totalDays = this.timeToSignUp + workload
+        this.score = (( (this.books.sumBy { it.score }.toDouble().pow(2) / totalDays) / timeToSignUp.toDouble().pow(2)));
+    }
+}
 
 fun main() {
-    for (ex in 'A'..'F') {
+    for (ex in 'A' .. 'F') {
         println("${ex}: started")
         val input = File("in/${ex}.in");
         val output = File("src/${ex}.out");
@@ -50,48 +57,58 @@ fun solve(reader: BufferedReader, output: File) {
 
 
     println("calculating solution...")
-    // SOLUTION
-    libraries.sortByDescending { it.books.sumBy { book ->  book.score } / (it.timeToSignUp + (it.books.size / it.numberOfBooksEachDay)) }
-    var remainingDays = numberOfDays;
 
-    val scannedBooks = mutableSetOf<Book>()
+    val alreadyScanned = mutableSetOf<Book>()
+    val result = mutableListOf<Library>()
 
-    for (i in 0 until numberOfLibraries) {
-        val lib = libraries.first();
-
-        val validBooks = lib.books.minus(scannedBooks)
-        lib.score = (validBooks.sumBy { it.score } / (lib.timeToSignUp + (validBooks.size / lib.numberOfBooksEachDay)))
-        validBooks.forEach { scannedBooks.add(it) }
-
-        remainingDays -= lib.timeToSignUp + (lib.books.size / lib.numberOfBooksEachDay)
-        libraries.add(lib)
-        libraries.removeAt(0);
-
-        for(j in 0 until libraries.size){
-            val lib = libraries[j];
-            val validBooks = lib.books.minus(scannedBooks)
-            val libMaxScore = validBooks.slice(0 .. min(remainingDays - lib.timeToSignUp, validBooks.size -1 )).sumBy { it.score }
-            lib.score = libMaxScore  / (lib.timeToSignUp + (validBooks.size / lib.numberOfBooksEachDay))
-        }
-        libraries.sortByDescending { it.score }
-
+    for (i in libraries.indices) {
+        val lib = libraries[i]
+        lib.calculateScore()
     }
 
+    libraries.sortByDescending { it.score }
 
+
+    for (i in libraries.indices) {
+        val lib = libraries.first()
+        libraries.removeAt(0);
+        lib.books.forEach { alreadyScanned.add(it) }
+
+        if (lib.books.isNotEmpty()) result.add(lib)
+
+        for (l in libraries) {
+            l.calculateScore(alreadyScanned = alreadyScanned)
+        }
+
+        libraries.sortByDescending { it.score }
+
+        if (shouldBreak(result, numberOfDays)) break
+    }
+
+    result.sortByDescending { it.books.sumBy { book -> book.score } / ( it.timeToSignUp + (it.books.size / it.numberOfBooksEachDay)) }
 
     // Output
+    println("score: ${calculateFinalScore(result)}")
     println("writing output...")
     output.writeText("")
 
     FileOutputStream(output, true)
         .bufferedWriter()
         .use { out ->
-            out.appendln("${libraries.size}")
-            libraries.forEach {
+            out.appendln("${result.size}")
+            result.forEach {
                 out.appendln("${it.id} ${it.books.size}")
                 out.appendln(it.books.joinToString { book -> book.id.toString() }.replace(",", ""))
             }
         }
 
 
+}
+
+fun shouldBreak(result: MutableList<Library>, numberOfDays: Int): Boolean {
+    return result.sumBy { it.timeToSignUp  } > numberOfDays
+}
+
+fun calculateFinalScore(result: MutableList<Library>): Int{
+    return result.sumBy { it.books.sumBy { book -> book.score  } }
 }
